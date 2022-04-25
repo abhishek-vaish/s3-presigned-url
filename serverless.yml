@@ -1,0 +1,35 @@
+service: s3-presigned-url
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+      Resource: !Join ["/", [!GetAtt signedUrlBucket.Arn, "*"]]
+
+functions:
+  getPresignedUrl:
+    handler: handler.getPresignedUrl
+    events:
+      - http:
+          path: getPresignedUrl
+          method: post
+    environment:
+      BUCKET_NAME: !Ref signedUrlBucket
+
+resources:
+  Resources:
+    signedUrlBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: lab-for-creating-presigned-url
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
